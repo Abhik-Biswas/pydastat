@@ -171,8 +171,25 @@ if input_file is not None:
                 test_statistic, p_value = ztest(df[col1].dropna(), value=sample_mean, alternative='two-sided', ddof=1)
             else:
                 test_statistic, p_value = ztest(df[col1].dropna(), alternative='two-sided')
-            st.write(f'Test Statistic: {test_statistic}')
-            st.write(f'P-Value: {p_value}')
+            plt.figure(figsize=(10, 6))
+            x = np.linspace(-3, 3, 1000)
+            plt.plot(x, norm.pdf(x, 0, 1), label='Standard Normal Distribution')
+            plt.fill_between(x, 0, norm.pdf(x, 0, 1), where=(x < -test_statistic), color='red', alpha=0.3, label='Critical Region')
+            plt.fill_between(x, 0, norm.pdf(x, 0, 1), where=(x > test_statistic), color='red', alpha=0.3)
+            plt.axvline(test_statistic, color='blue', linestyle='--', label=f'Test Statistic = {test_statistic:.2f}')
+            plt.legend()
+            plt.title('Z-Test for Mean')
+            plt.xlabel('Z-Score')
+            plt.ylabel('Probability Density')
+            st.pyplot(plt)
+        
+            st.write(f'Test Statistic: {test_statistic:.2f}')
+            st.write(f'P-Value: {p_value:.4f}')
+            if p_value < alpha:
+                st.write(f'Reject the null hypothesis at alpha = {alpha}')
+            else:
+                st.write(f'Fail to reject the null hypothesis at alpha = {alpha}')
+            
 
         elif test_type == 'T-Test':
             from scipy.stats import ttest_1samp
