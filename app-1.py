@@ -154,7 +154,7 @@ if input_file is not None:
 
     if test_type:
         col1 = st.selectbox('Select the first numerical column:', selected_cols)
-        col2 = st.selectbox('Select the second numerical column:', set(selected_cols)-col1)
+        col2 = st.selectbox('Select the second numerical column:', set(selected_cols)-{col1})
         # Option to enter custom values for the test
         custom_test_values = st.checkbox('Enter Custom Test Values', value=False)
     
