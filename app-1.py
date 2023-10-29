@@ -211,5 +211,7 @@ if test_type:
         st.write(f'P-Value: {p_value}')
 else:
     pass
+else:
+    pass
 
 
