@@ -166,6 +166,7 @@ if input_file is not None:
     
         if test_type == 'Z-Test':
             from statsmodels.stats.weightstats import ztest
+            from scipy.stats import norm
             st.write('Performing Z-Test:')
             if custom_test_values:
                 test_statistic, p_value = ztest(df[col1].dropna(), value=sample_mean, alternative='two-sided', ddof=1)
