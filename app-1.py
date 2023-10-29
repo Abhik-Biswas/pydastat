@@ -193,30 +193,104 @@ if input_file is not None:
             
 
         elif test_type == 'T-Test':
-            from scipy.stats import ttest_1samp
+            from scipy.stats import ttest_1samp, t
             st.write('Performing T-Test:')
             if custom_test_values:
                 test_statistic, p_value = ttest_1samp(df[col1].dropna(), sample_mean)
             else:
                 test_statistic, p_value = ttest_1samp(df[col1].dropna(), 0)
-            st.write(f'Test Statistic: {test_statistic}')
-            st.write(f'P-Value: {p_value}')
 
+            df_degrees = len(df[col1].dropna()) - 1
+            t_critical_right = t.ppf(1 - alpha / 2, df=df_degrees)
+            t_critical_left = -t_critical_right
+    
+            # Create a plot to visualize the T-Test
+            x = np.linspace(-3, 3, 1000)
+            t_dist = t.pdf(x, df=df_degrees)
+    
+            plt.figure(figsize=(10, 6))
+            plt.plot(x, t_dist, label=f'T-Distribution (df={df_degrees})')
+            plt.fill_between(x, 0, t_dist, where=(x < t_critical_left), color='red', alpha=0.3, label='Critical Region')
+            plt.fill_between(x, 0, t_dist, where=(x > t_critical_right), color='red', alpha=0.3)
+            plt.axvline(test_statistic, color='blue', linestyle='--', label=f'Test Statistic = {test_statistic:.2f}')
+            plt.legend()
+            plt.title('T-Test for Mean')
+            plt.xlabel('T-Score')
+            plt.ylabel('Probability Density')
+            st.pyplot(plt)
+    
+            st.write(f'Test Statistic: {test_statistic:.2f}')
+            st.write(f'P-Value: {p_value:.4f}')
+    
+            if p_value < alpha:
+                st.write(f'Reject the null hypothesis at alpha = {alpha}')
+            else:
+                st.write(f'Fail to reject the null hypothesis at alpha = {alpha}')
+                
         elif test_type == 'Chi-Square Test':
-            from scipy.stats import chi2_contingency
+            from scipy.stats import chi2_contingency, chi2
             st.write('Performing Chi-Square Test:')
             contingency_table = pd.crosstab(df[col1].dropna(), df[col2].dropna())
             chi2, p, dof, expected = chi2_contingency(contingency_table)
-            st.write(f'Chi-Square Statistic: {chi2}')
-            st.write(f'P-Value: {p}')
+
+            x = np.linspace(0, chi2 * 2, 1000)
+            chi2_dist = chi2.pdf(x, dof)
+    
+            critical_value = chi2.ppf(1 - alpha, df=dof)
+    
+            plt.figure(figsize=(10, 6))
+            plt.plot(x, chi2_dist, label=f'Chi-Square Distribution (df={dof})')
+            plt.fill_between(x, 0, chi2_dist, where=(x > critical_value), color='red', alpha=0.3, label='Critical Region')
+            plt.axvline(chi2, color='blue', linestyle='--', label=f'Chi-Square Statistic = {chi2:.2f}')
+            plt.legend()
+            plt.title('Chi-Square Test')
+            plt.xlabel('Chi-Square Statistic')
+            plt.ylabel('Probability Density')
+            st.pyplot(plt)
+    
+            st.write(f'Chi-Square Statistic: {chi2:.2f}')
+            st.write(f'P-Value: {p:.4f}')
+    
+            if p < alpha:
+                st.write(f'Reject the null hypothesis at alpha = {alpha}')
+            else:
+                st.write(f'Fail to reject the null hypothesis at alpha = {alpha}')
 
         elif test_type == 'F-Test':
-            from scipy.stats import f_oneway
-            st.write('Performing F-Test:')
-            groups = [df[df[col1].notna()][col1], df[df[col2].notna()][col2]]  # Assuming col1 and col2 are categorical variables
-            f_statistic, p_value = f_oneway(*groups)
-            st.write(f'F-Statistic: {f_statistic}')
-            st.write(f'P-Value: {p_value}')
+            from scipy.stats import f_oneway, f
+
+            st.write('Performing F-Test for Two Variances:')
+            var1 = df[col1].dropna().var()
+            var2 = df[col2].dropna().var()
+
+            # Calculate F-statistic
+            f_statistic = var1 / var2 if var1 > var2 else var2 / var1
+
+            dfn = len(df[col1].dropna()) - 1
+            dfd = len(df[col2].dropna()) - 1
+            f_critical = f.ppf(1 - alpha / 2, dfn=dfn, dfd=dfd)
+    
+            # Create a plot to visualize the F-Test for Two Variances
+            x = np.linspace(0, f_critical * 2, 1000)
+            f_dist = f.pdf(x, dfn=dfn, dfd=dfd)
+    
+            plt.figure(figsize=(10, 6))
+            plt.plot(x, f_dist, label=f'F-Distribution (dfn={dfn}, dfd={dfd})')
+            plt.fill_between(x, 0, f_dist, where=(x > f_critical), color='red', alpha=0.3, label='Critical Region')
+            plt.axvline(f_statistic, color='blue', linestyle='--', label=f'F-Statistic = {f_statistic:.2f}')
+            plt.legend()
+            plt.title('F-Test for Two Variances')
+            plt.xlabel('F-Statistic')
+            plt.ylabel('Probability Density')
+            st.pyplot(plt)
+    
+            st.write(f'F-Statistic: {f_statistic:.2f}')
+            st.write(f'Critical Value at alpha/2: {f_critical:.4f}')
+    
+            if f_statistic > f_critical:
+                st.write(f'Reject the null hypothesis at alpha = {alpha}')
+            else:
+                st.write(f'Fail to reject the null hypothesis at alpha = {alpha}')
 
         elif test_type == '2-Sample Z-Test':
             from statsmodels.stats.weightstats import ztest
@@ -225,8 +299,39 @@ if input_file is not None:
                 test_statistic, p_value = ztest(df[col1].dropna(), df[col2].dropna(), value=0.0, alternative='two-sided', ddof=1)
             else:
                 test_statistic, p_value = ztest(df[col1].dropna(), df[col2].dropna(), alternative='two-sided')
-            st.write(f'Test Statistic: {test_statistic}')
-            st.write(f'P-Value: {p_value}')
+
+            sample1 = df[col1].dropna()
+            sample2 = df[col2].dropna()
+    
+            # Calculate the test statistic and p-value
+            test_statistic, p_value = ztest(sample1, sample2, alternative='two-sided')
+    
+            # Calculate critical values for two-tailed test
+            z_critical_left = norm.ppf(alpha / 2)
+            z_critical_right = norm.ppf(1 - alpha / 2)
+    
+            # Create a plot to visualize the 2-Sample Z-Test
+            x = np.linspace(-3, 3, 1000)
+            z_dist = norm.pdf(x, 0, 1)
+    
+            plt.figure(figsize=(10, 6))
+            plt.plot(x, z_dist, label='Standard Normal Distribution')
+            plt.fill_between(x, 0, z_dist, where=(x < z_critical_left), color='red', alpha=0.3, label='Critical Region')
+            plt.fill_between(x, 0, z_dist, where=(x > z_critical_right), color='red', alpha=0.3)
+            plt.axvline(test_statistic, color='blue', linestyle='--', label=f'Test Statistic = {test_statistic:.2f}')
+            plt.legend()
+            plt.title('2-Sample Z-Test for Means')
+            plt.xlabel('Z-Score')
+            plt.ylabel('Probability Density')
+            st.pyplot(plt)
+    
+            st.write(f'Test Statistic: {test_statistic:.2f}')
+            st.write(f'P-Value: {p_value:.4f}')
+    
+            if p_value < alpha:
+                st.write(f'Reject the null hypothesis at alpha = {alpha}')
+            else:
+                st.write(f'Fail to reject the null hypothesis at alpha = {alpha}')
     else:
         pass
 else:
