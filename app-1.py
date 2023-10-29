@@ -150,67 +150,67 @@ if input_file is not None:
             st.plotly_chart(fig)
     st.markdown('## Hypothesis Testing on Numerical Columns')
 
-test_type = st.selectbox('Select Hypothesis Test Type:', ['Z-Test', 'T-Test', 'Chi-Square Test', 'F-Test', '2-Sample Z-Test'])
+    test_type = st.selectbox('Select Hypothesis Test Type:', ['Z-Test', 'T-Test', 'Chi-Square Test', 'F-Test', '2-Sample Z-Test'])
 
-if test_type:
-    col1 = st.selectbox('Select the first numerical column:', selected_cols)
+    if test_type:
+        col1 = st.selectbox('Select the first numerical column:', selected_cols)
     
-    # Option to enter custom values for the test
-    custom_test_values = st.checkbox('Enter Custom Test Values', value=False)
+        # Option to enter custom values for the test
+        custom_test_values = st.checkbox('Enter Custom Test Values', value=False)
     
-    if custom_test_values:
-        st.write('Enter Custom Test Values:')
-        alpha = st.number_input('Significance Level (alpha):', min_value=0.001, max_value=0.5, step=0.001, value=0.05)
-        sample_mean = st.number_input('Sample Mean:', value=0.0)
-        sample_stddev = st.number_input('Sample Standard Deviation:', value=1.0)
+        if custom_test_values:
+            st.write('Enter Custom Test Values:')
+            alpha = st.number_input('Significance Level (alpha):', min_value=0.001, max_value=0.5, step=0.001, value=0.05)
+            sample_mean = st.number_input('Sample Mean:', value=0.0)
+            sample_stddev = st.number_input('Sample Standard Deviation:', value=1.0)
     
-    if test_type == 'Z-Test':
-        from statsmodels.stats.weightstats import ztest
-        st.write('Performing Z-Test:')
-        if custom_test_values:
-            test_statistic, p_value = ztest(df[col1].dropna(), value=sample_mean, alternative='two-sided', ddof=1)
-        else:
-            test_statistic, p_value = ztest(df[col1].dropna(), alternative='two-sided')
-        st.write(f'Test Statistic: {test_statistic}')
-        st.write(f'P-Value: {p_value}')
+        if test_type == 'Z-Test':
+            from statsmodels.stats.weightstats import ztest
+            st.write('Performing Z-Test:')
+            if custom_test_values:
+                test_statistic, p_value = ztest(df[col1].dropna(), value=sample_mean, alternative='two-sided', ddof=1)
+            else:
+                test_statistic, p_value = ztest(df[col1].dropna(), alternative='two-sided')
+            st.write(f'Test Statistic: {test_statistic}')
+            st.write(f'P-Value: {p_value}')
 
-    elif test_type == 'T-Test':
-        from scipy.stats import ttest_1samp
-        st.write('Performing T-Test:')
-        if custom_test_values:
-            test_statistic, p_value = ttest_1samp(df[col1].dropna(), sample_mean)
-        else:
-            test_statistic, p_value = ttest_1samp(df[col1].dropna(), 0)
-        st.write(f'Test Statistic: {test_statistic}')
-        st.write(f'P-Value: {p_value}')
+        elif test_type == 'T-Test':
+            from scipy.stats import ttest_1samp
+            st.write('Performing T-Test:')
+            if custom_test_values:
+                test_statistic, p_value = ttest_1samp(df[col1].dropna(), sample_mean)
+            else:
+                test_statistic, p_value = ttest_1samp(df[col1].dropna(), 0)
+            st.write(f'Test Statistic: {test_statistic}')
+            st.write(f'P-Value: {p_value}')
 
-    elif test_type == 'Chi-Square Test':
-        from scipy.stats import chi2_contingency
-        st.write('Performing Chi-Square Test:')
-        contingency_table = pd.crosstab(df[col1].dropna(), df[col2].dropna())
-        chi2, p, dof, expected = chi2_contingency(contingency_table)
-        st.write(f'Chi-Square Statistic: {chi2}')
-        st.write(f'P-Value: {p}')
+        elif test_type == 'Chi-Square Test':
+            from scipy.stats import chi2_contingency
+            st.write('Performing Chi-Square Test:')
+            contingency_table = pd.crosstab(df[col1].dropna(), df[col2].dropna())
+            chi2, p, dof, expected = chi2_contingency(contingency_table)
+            st.write(f'Chi-Square Statistic: {chi2}')
+            st.write(f'P-Value: {p}')
 
-    elif test_type == 'F-Test':
-        from scipy.stats import f_oneway
-        st.write('Performing F-Test:')
-        groups = [df[df[col1].notna()][col1], df[df[col2].notna()][col2]]  # Assuming col1 and col2 are categorical variables
-        f_statistic, p_value = f_oneway(*groups)
-        st.write(f'F-Statistic: {f_statistic}')
-        st.write(f'P-Value: {p_value}')
+        elif test_type == 'F-Test':
+            from scipy.stats import f_oneway
+            st.write('Performing F-Test:')
+            groups = [df[df[col1].notna()][col1], df[df[col2].notna()][col2]]  # Assuming col1 and col2 are categorical variables
+            f_statistic, p_value = f_oneway(*groups)
+            st.write(f'F-Statistic: {f_statistic}')
+            st.write(f'P-Value: {p_value}')
 
-    elif test_type == '2-Sample Z-Test':
-        from statsmodels.stats.weightstats import ztest
-        st.write('Performing 2-Sample Z-Test:')
-        if custom_test_values:
-            test_statistic, p_value = ztest(df[col1].dropna(), df[col2].dropna(), value=0.0, alternative='two-sided', ddof=1)
-        else:
-            test_statistic, p_value = ztest(df[col1].dropna(), df[col2].dropna(), alternative='two-sided')
-        st.write(f'Test Statistic: {test_statistic}')
-        st.write(f'P-Value: {p_value}')
-else:
-    pass
+        elif test_type == '2-Sample Z-Test':
+            from statsmodels.stats.weightstats import ztest
+            st.write('Performing 2-Sample Z-Test:')
+            if custom_test_values:
+                test_statistic, p_value = ztest(df[col1].dropna(), df[col2].dropna(), value=0.0, alternative='two-sided', ddof=1)
+            else:
+                test_statistic, p_value = ztest(df[col1].dropna(), df[col2].dropna(), alternative='two-sided')
+            st.write(f'Test Statistic: {test_statistic}')
+            st.write(f'P-Value: {p_value}')
+    else:
+        pass
 else:
     pass
 
